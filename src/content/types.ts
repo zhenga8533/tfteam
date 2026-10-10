@@ -26,6 +26,12 @@ export interface CompUnit {
   alternatives?: string[];
 }
 
+/** Where a guide or tier list is based on, credited with a link on its page. */
+export interface ContentSource {
+  name: string;
+  url: string;
+}
+
 export interface Comp {
   /** URL slug; must be unique across all sets. */
   slug: string;
@@ -45,6 +51,8 @@ export interface Comp {
   tips?: string[];
   /** ISO date (YYYY-MM-DD) of the last content update. */
   updatedAt: string;
+  /** The guide this one is based on, credited on its page. */
+  source?: ContentSource;
 }
 
 export type TierRows = Partial<Record<Tier, string[]>>;
@@ -70,5 +78,7 @@ export interface TierList extends StatTierRows {
   fallback?: StatTierRows;
   /** Augment apiNames grouped by tier. */
   augments: TierRows;
+  /** Where the augment tiers come from, credited on the tier list, when they're another site's. */
+  augmentsSource?: ContentSource;
   updatedAt: string;
 }

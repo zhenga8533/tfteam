@@ -4,7 +4,7 @@ import { TraitIcon } from "@/components/game/icons";
 import { TRAIT_TEXT } from "@/components/game/styles";
 import { SearchInput } from "@/components/layout/search-input";
 import { ChoiceFilter } from "@/components/game/choice-filter";
-import { tierListForSet } from "@/content";
+import { tierListForSet } from "@/content/tierlists";
 import { StatTierList } from "@/features/stats/components/stat-tier-list";
 import { parseStatsScope, scopeChoices, type StatsScope } from "@/features/stats/scope";
 import { StatTrend } from "@/features/stats/components/patch-trend";

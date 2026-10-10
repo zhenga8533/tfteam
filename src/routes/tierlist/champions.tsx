@@ -3,7 +3,7 @@ import { ChampionCard } from "@/components/game/cards";
 import { ChampionFilterBar } from "@/components/game/filters";
 import { type ChampionFilters, matchesChampionFilters, parseChampionFilters } from "@/components/game/filter-params";
 import { ChampionIcon } from "@/components/game/icons";
-import { tierListForSet } from "@/content";
+import { tierListForSet } from "@/content/tierlists";
 import { StatTierList } from "@/features/stats/components/stat-tier-list";
 import { parseStatsScope, scopeChoices, type StatsScope } from "@/features/stats/scope";
 import { StatTrend } from "@/features/stats/components/patch-trend";

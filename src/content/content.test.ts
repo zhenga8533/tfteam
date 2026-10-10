@@ -3,7 +3,8 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import type { SetData } from "@/lib/data/schema";
 import { BOARD_SIZE, MAX_ITEMS } from "@/lib/game/board";
-import { ALL_COMPS, ALL_TIER_LISTS } from ".";
+import { GUIDE_SETS, loadComps } from ".";
+import { ALL_TIER_LISTS } from "./tierlists";
 import type { CompUnit, TierRows } from "./types";
 
 // Content is validated against live-patch data, which is what the deployed site shows by default.
@@ -38,6 +39,8 @@ function unitProblems(units: CompUnit[], data: SetData): string[] {
   });
 }
 
+const ALL_COMPS = (await Promise.all(GUIDE_SETS.map(loadComps))).flat();
+
 describe("comps", () => {
   it("have unique slugs", () => {
     const slugs = ALL_COMPS.map((comp) => comp.slug);
@@ -55,6 +58,8 @@ describe("comps", () => {
         .map((augment) => `unknown augment ${augment}`),
     ];
     if (!/^\d{4}-\d{2}-\d{2}$/.test(comp.updatedAt)) problems.push(`updatedAt must be YYYY-MM-DD`);
+    // Pages find a guide's set, and so its chunk, from the slug.
+    if (!comp.slug.startsWith(`set${comp.set}-`)) problems.push(`slug must start with set${comp.set}-`);
     expect(problems).toEqual([]);
   });
 });

@@ -4,7 +4,7 @@ import { type ItemFilters, parseItemFilters } from "@/components/game/filter-par
 import { ItemKindFilter } from "@/components/game/filters";
 import { ItemIcon } from "@/components/game/icons";
 import { SearchInput } from "@/components/layout/search-input";
-import { tierListForSet } from "@/content";
+import { tierListForSet } from "@/content/tierlists";
 import { StatTierList } from "@/features/stats/components/stat-tier-list";
 import { parseStatsScope, scopeChoices, type StatsScope } from "@/features/stats/scope";
 import { StatTrend } from "@/features/stats/components/patch-trend";

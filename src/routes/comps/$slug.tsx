@@ -5,7 +5,10 @@ import { GameHoverCard } from "@/components/game/game-hover-card";
 import { AugmentIcon } from "@/components/game/icons";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { findComp } from "@/content";
+import { SourceCredit } from "@/components/layout/source-credit";
+import { setOfSlug } from "@/content";
+import { compGuidesQuery } from "@/content/hooks";
+import { queryClient } from "@/lib/query-client";
 import { DEFAULT_LEVEL, EARLY_LEVEL } from "@/features/builder/store";
 import { CompBoard } from "@/features/comps/components/comp-board";
 import { CopyTeamCodeButton } from "@/features/comps/components/copy-team-code-button";
@@ -22,8 +25,10 @@ import type { CompUnit } from "@/content/types";
 import { useAutoComps, useGameData } from "@/lib/data/hooks";
 
 export const Route = createFileRoute("/comps/$slug")({
-  loader: ({ params }) => {
-    const comp = findComp(params.slug);
+  loader: async ({ params }) => {
+    const set = setOfSlug(params.slug);
+    const guides = set ? await queryClient.ensureQueryData(compGuidesQuery(set)) : [];
+    const comp = guides.find((guide) => guide.slug === params.slug);
     if (!comp) throw notFound();
     return comp;
   },
@@ -104,6 +109,7 @@ function CompGuidePage() {
             <span className={DIFFICULTY_TEXT[comp.difficulty]}>{comp.difficulty}</span>
             <span>Set {comp.set}</span>
             <span>Updated {comp.updatedAt}</span>
+            {comp.source && <SourceCredit source={comp.source} label="Based on" />}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

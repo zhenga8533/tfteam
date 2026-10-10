@@ -1,4 +1,4 @@
-import { tierListForSet } from "@/content";
+import { tierListForSet } from "@/content/tierlists";
 import type { Tier, TierRows } from "@/content/types";
 import { tierListRows } from "@/features/stats/tiers";
 import { useActiveSet, useGameData, useStats } from "@/lib/data/hooks";
