@@ -93,7 +93,7 @@ class BoardStore {
 }
 
 export interface ExplorerPart {
-  kind: "champion" | "trait";
+  kind: "champion" | "trait" | "item";
   apiName: string;
   /** An index into `RANK_BUCKETS`. */
   rank: number;
@@ -101,16 +101,23 @@ export interface ExplorerPart {
 }
 
 /**
- * Sorts the Explorer's boards (see `EXPLORER_FILES`): each into the files of every champion and active trait on it,
- * by rank, and into the totals. Boards are kept packed until a file is written.
+ * Sorts the Explorer's boards (see `EXPLORER_FILES`): each into the files of every champion, active trait and
+ * `boardItems` item on it, by rank, and into the totals. Boards are kept packed until a file is written.
  */
 export class ExplorerCollector {
   /** Boards per rank (an index into `RANK_BUCKETS`), so a champion's or trait's shares can be of the whole patch. */
   readonly population: number[] = RANK_BUCKETS.map(() => 0);
   readonly totals = new TotalsAccumulator();
   private readonly store = new BoardStore();
-  /** Board IDs per champion and per trait. */
-  private readonly files = { champion: new Map<string, NumberList>(), trait: new Map<string, NumberList>() };
+  /** Board IDs per champion, trait and item. */
+  private readonly files = {
+    champion: new Map<string, NumberList>(),
+    trait: new Map<string, NumberList>(),
+    item: new Map<string, NumberList>(),
+  };
+
+  /** `boardItems`: the items that get files of their own (see `BOARD_ITEM_KINDS`). */
+  constructor(private readonly boardItems: ReadonlySet<string> = new Set()) {}
 
   add(bucket: RankBucket, resolved: ResolvedBoard) {
     const rank = RANK_BUCKETS.indexOf(bucket);
@@ -126,15 +133,17 @@ export class ExplorerCollector {
     const id = this.store.add(board);
     for (const apiName of new Set(board.units.map((unit) => unit.apiName))) file(this.files.champion, apiName, id);
     for (const apiName of new Set(board.traits.map((trait) => trait.apiName))) file(this.files.trait, apiName, id);
+    const items = new Set(board.units.flatMap((unit) => unit.items).filter((apiName) => this.boardItems.has(apiName)));
+    for (const apiName of items) file(this.files.item, apiName, id);
   }
 
   /**
-   * Every champion's and trait's boards at each of the first `ranks` ranks, one file's worth at a time, so only one
-   * champion's or trait's boards are ever unpacked. A rank without boards still gets a part, so a missing file always
+   * Every champion's, trait's and item's boards at each of the first `ranks` ranks, one file's worth at a time, so only
+   * one file's boards are ever unpacked. A rank without boards still gets a part, so a missing file always
    * means something went wrong.
    */
   *parts(ranks: number): Generator<ExplorerPart> {
-    for (const kind of ["champion", "trait"] as const) {
+    for (const kind of ["champion", "trait", "item"] as const) {
       for (const [apiName, ids] of this.files[kind]) {
         const byRank = Array.from({ length: ranks }, (): ExplorerBoard[] => []);
         for (let i = 0; i < ids.length; i++) {

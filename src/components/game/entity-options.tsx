@@ -1,7 +1,8 @@
 import { useGameData } from "@/lib/data/hooks";
 import { traitStyle } from "@/lib/game/traits";
 import type { EntityOption } from "./entity-picker";
-import { ChampionIcon, TraitIcon } from "./icons";
+import { ChampionIcon, ItemIcon, TraitIcon } from "./icons";
+import { ITEM_KIND_LABELS } from "./styles";
 
 /** The set's champions as picker options with portraits; `only` limits them to these apiNames. */
 export function useChampionOptions(only?: string[]): EntityOption[] {
@@ -25,5 +26,18 @@ export function useTraitOptions(): EntityOption[] {
       key: trait.apiName,
       label: trait.name,
       icon: <TraitIcon trait={trait} style={traitStyle(trait.breakpoints[0]?.style ?? 1)} />,
+    }));
+}
+
+/** The set's items that end up on final boards (not components) as picker options, with their category. */
+export function useItemOptions(): EntityOption[] {
+  const { items } = useGameData();
+  return items
+    .filter((item) => item.kind !== "component")
+    .map((item) => ({
+      key: item.apiName,
+      label: item.name,
+      icon: <ItemIcon item={item} />,
+      hint: ITEM_KIND_LABELS[item.kind],
     }));
 }

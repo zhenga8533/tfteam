@@ -32,6 +32,7 @@ function parseFilters(value: unknown): ExplorerFilter[] {
     if (entry?.type === "trait" && isString(entry.trait) && isNumber(entry.minUnits)) {
       return [{ type: "trait", trait: entry.trait, minUnits: entry.minUnits }];
     }
+    if (entry?.type === "item" && isString(entry.item)) return [{ type: "item", item: entry.item }];
     if (entry?.type === "level" && isNumber(entry.min)) return [{ type: "level", min: entry.min }];
     return [];
   });
@@ -57,7 +58,7 @@ function ExplorerPage() {
   const filters = search.filters ?? [];
   // The Explorer's files hold every offered rank floor; the chosen one (or the default) picks their boards.
   const floorStats = useTierStats(search.rank);
-  const { championsByApi, traitsByApi } = useGameData();
+  const { championsByApi, itemsByApi, traitsByApi } = useGameData();
   const source = explorerSource(filters);
   // Who the boards are about ("Ahri", "Blossom"); null for every board.
   const subject =
@@ -65,7 +66,9 @@ function ExplorerPage() {
       ? (championsByApi.get(source.apiName)?.name ?? source.apiName)
       : source.type === "trait"
         ? (traitsByApi.get(source.apiName)?.name ?? source.apiName)
-        : null;
+        : source.type === "item"
+          ? (itemsByApi.get(source.apiName)?.name ?? source.apiName)
+          : null;
   const urls =
     patch === "latest" && stats?.status === "ready" && floorStats
       ? explorerFiles(source, floorStats.rankFloor).map((path) => explorerUrl(set, path, stats.frozen))
@@ -99,7 +102,7 @@ function ExplorerPage() {
       ) : (
         <div className="space-y-6">
           <div className="space-y-2">
-            <FilterBar filters={filters} onChange={setFilters} />
+            <FilterBar filters={filters} onChange={setFilters} boardItems={Boolean(stats?.explorerItems)} />
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
               {pending && status.state === "loading" ? (
                 <>

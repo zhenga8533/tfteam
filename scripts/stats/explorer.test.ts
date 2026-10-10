@@ -29,6 +29,21 @@ describe("ExplorerCollector", () => {
     expect(collector.totals.results(1).groups.map((group) => group.summary[0])).toEqual([2, 2]);
   });
 
+  it("files boards under the items it was given, once however many units hold one", () => {
+    const collector = new ExplorerCollector(new Set(["JG"]));
+    collector.add("master_plus", board(1, ["Ahri", "Sett"]));
+    collector.add("master_plus", {
+      ...board(2, ["Ahri", "Sett"]),
+      units: [
+        { apiName: "Ahri", star: 2, items: ["JG"] },
+        { apiName: "Sett", star: 2, items: ["JG"] },
+      ],
+    });
+    const parts = [...collector.parts(1)];
+    expect(placements(parts, "item", "JG")).toEqual([[1, 2]]);
+    expect(placements(parts, "item", "BB")).toEqual([]);
+  });
+
   it("gives every champion and trait a part for each rank, even without boards there", () => {
     const collector = new ExplorerCollector();
     collector.add("master_plus", board(1, ["Ahri"]));

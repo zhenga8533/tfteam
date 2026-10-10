@@ -17,6 +17,8 @@ export type ExplorerFilter =
   | { type: "unit"; unit: string; minStar?: number; items?: string[] }
   /** A trait active at or above a breakpoint. */
   | { type: "trait"; trait: string; minUnits: number }
+  /** An item held by any unit on the board; only `BOARD_ITEM_KINDS` have the files to answer it on its own. */
+  | { type: "item"; item: string }
   /** The player's level at or above a value. */
   | { type: "level"; min: number };
 
@@ -42,6 +44,8 @@ const MIN_ROW_GAMES = LOW_SAMPLE_GAMES;
 interface Compiled {
   units: { filter: string; unit: number; minStar: number; items: number[] }[];
   traits: { trait: number; minUnits: number }[];
+  /** Item slot values (an item's index + 1) that some unit on the board must hold. */
+  boardItems: number[];
   minLevel: number;
 }
 
@@ -51,7 +55,7 @@ function compile(data: ExplorerData, filters: ExplorerFilter[]): Compiled | null
   const units = index(data.units);
   const items = index(data.items);
   const traits = index(data.traits);
-  const compiled: Compiled = { units: [], traits: [], minLevel: 0 };
+  const compiled: Compiled = { units: [], traits: [], boardItems: [], minLevel: 0 };
 
   for (const filter of filters) {
     if (filter.type === "unit") {
@@ -68,6 +72,10 @@ function compile(data: ExplorerData, filters: ExplorerFilter[]): Compiled | null
       const trait = traits.get(filter.trait);
       if (trait === undefined) return null;
       compiled.traits.push({ trait, minUnits: filter.minUnits });
+    } else if (filter.type === "item") {
+      const item = items.get(filter.item);
+      if (item === undefined) return null;
+      compiled.boardItems.push(item + 1);
     } else {
       compiled.minLevel = Math.max(compiled.minLevel, filter.min);
     }
@@ -150,6 +158,8 @@ export function runQuery(
       return false;
     });
     if (!traitsMatch) continue;
+    const boardSlots = data.unitItems.subarray(unitStart * ITEM_SLOTS, unitEnd * ITEM_SLOTS);
+    if (!compiled.boardItems.every((item) => boardSlots.includes(item))) continue;
 
     const placement = data.placement[board]!;
     bump(summary, placement);
