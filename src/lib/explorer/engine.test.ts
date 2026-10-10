@@ -51,6 +51,32 @@ describe("explorer engine", () => {
     expect(runQuery(data, [], 1).summary?.games).toBe(25);
   });
 
+  it("matches an item on any unit of the board", () => {
+    // JG is on Ahri on the winning boards and on Sett on the 4th place ones.
+    expect(runQuery(data, [{ type: "item", item: "JG" }], 1).summary?.games).toBe(15);
+    expect(
+      runQuery(
+        data,
+        [
+          { type: "item", item: "JG" },
+          { type: "unit", unit: "Sett" },
+        ],
+        1,
+      ).summary?.games,
+    ).toBe(15);
+    expect(
+      runQuery(
+        data,
+        [
+          { type: "item", item: "BB" },
+          { type: "level", min: 9 },
+        ],
+        1,
+      ).summary?.games,
+    ).toBe(10);
+    expect(runQuery(data, [{ type: "item", item: "Nothing" }], 1).summary).toBeNull();
+  });
+
   it("ranks units, traits and the filtered unit's items against the filtered average", () => {
     const result = runQuery(data, [{ type: "unit", unit: "Ahri" }], 1);
     expect(result.units.map((row) => row.key)).toEqual(["Zyra", "Sett"]);

@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Compass } from "lucide-react";
 import { MissingEntry } from "@/components/game/missing-entry";
 import { ItemCard, ItemRecipe } from "@/components/game/cards";
 import { ItemIcon } from "@/components/game/icons";
 import { ChampionLink, ItemLink, TraitLink } from "@/components/game/links";
 import { ITEM_KIND_LABELS } from "@/components/game/styles";
 import { EmptyState } from "@/components/layout/empty-state";
+import { Button } from "@/components/ui/button";
 import { Section } from "@/components/layout/section";
 import { AutoCompList } from "@/features/comps/components/auto-comp-list";
 import { TierBadge } from "@/features/comps/components/tier-badge";
@@ -16,6 +17,7 @@ import { StatTable } from "@/features/stats/components/stat-table";
 import { NoStats } from "@/features/stats/components/no-stats";
 import { StatsMeta } from "@/features/stats/components/stats-meta";
 import { useGameData, useItemStats, useStats } from "@/lib/data/hooks";
+import { BOARD_ITEM_KINDS } from "@/lib/explorer/files";
 import type { Item, ItemStats } from "@/lib/data/schema";
 
 export const Route = createFileRoute("/items_/$apiName")({
@@ -96,6 +98,17 @@ function ItemHeader({ item }: { item: Item }) {
         </p>
         {line && <StatSummary line={line} play="of games" />}
       </div>
+      {line && stats?.explorerItems && BOARD_ITEM_KINDS.includes(item.kind) && (
+        <Button asChild variant="outline">
+          <Link
+            to="/explorer"
+            search={{ filters: [{ type: "item", item: item.apiName }] }}
+            title="The champions and traits that do best on boards with this item"
+          >
+            <Compass /> Explore boards
+          </Link>
+        </Button>
+      )}
       {line?.tier && <TierBadge tier={line.tier} className="size-14 text-3xl" />}
     </header>
   );

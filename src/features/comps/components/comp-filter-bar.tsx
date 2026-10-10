@@ -1,8 +1,8 @@
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
-import { useChampionOptions, useTraitOptions } from "@/components/game/entity-options";
+import { useChampionOptions, useItemOptions, useTraitOptions } from "@/components/game/entity-options";
 import { EntityPicker } from "@/components/game/entity-picker";
-import { ChampionIcon, TraitIcon } from "@/components/game/icons";
+import { ChampionIcon, ItemIcon, TraitIcon } from "@/components/game/icons";
 import { SearchInput } from "@/components/layout/search-input";
 import { Button } from "@/components/ui/button";
 import { useGameData } from "@/lib/data/hooks";
@@ -20,7 +20,7 @@ function Chip({ children, onRemove, label }: { children: ReactNode; onRemove: ()
   );
 }
 
-/** Search plus champion and trait pickers that add chips; every chip narrows the comps further. */
+/** Search plus champion, trait and item pickers that add chips; every chip narrows the comps further. */
 export function CompFilterBar({
   value,
   onChange,
@@ -31,12 +31,14 @@ export function CompFilterBar({
   /** More controls for the same row, e.g. the guides' playstyle filter. */
   children?: ReactNode;
 }) {
-  const { championsByApi, traitsByApi } = useGameData();
+  const { championsByApi, itemsByApi, traitsByApi } = useGameData();
   const champions = value.champions ?? [];
   const traits = value.traits ?? [];
+  const items = value.items ?? [];
   const championOptions = useChampionOptions().filter((option) => !champions.includes(option.key));
   const traitOptions = useTraitOptions().filter((option) => !traits.includes(option.key));
-  const list = (items: string[]) => (items.length ? items : undefined);
+  const itemOptions = useItemOptions().filter((option) => !items.includes(option.key));
+  const list = (entries: string[]) => (entries.length ? entries : undefined);
 
   return (
     <div className="w-full space-y-2">
@@ -62,18 +64,26 @@ export function CompFilterBar({
           clearable={false}
           className="w-44"
         />
+        <EntityPicker
+          options={itemOptions}
+          onChange={(apiName) => apiName && onChange({ items: [...items, apiName] })}
+          placeholder="Add item"
+          label="Add an item filter"
+          clearable={false}
+          className="w-44"
+        />
         {children}
         {hasCompFilters(value) && (
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onChange({ q: undefined, champions: undefined, traits: undefined })}
+            onClick={() => onChange({ q: undefined, champions: undefined, traits: undefined, items: undefined })}
           >
             Clear filters
           </Button>
         )}
       </div>
-      {(champions.length > 0 || traits.length > 0) && (
+      {(champions.length > 0 || traits.length > 0 || items.length > 0) && (
         <ul className="flex flex-wrap items-center gap-2" aria-label="Active filters">
           {champions.map((apiName) => {
             const champion = championsByApi.get(apiName);
@@ -106,6 +116,20 @@ export function CompFilterBar({
                     decorative
                   />
                 )}
+                {name}
+              </Chip>
+            );
+          })}
+          {items.map((apiName) => {
+            const item = itemsByApi.get(apiName);
+            const name = item?.name ?? apiName;
+            return (
+              <Chip
+                key={apiName}
+                label={name}
+                onRemove={() => onChange({ items: list(items.filter((entry) => entry !== apiName)) })}
+              >
+                {item && <ItemIcon item={item} className="size-6" decorative />}
                 {name}
               </Chip>
             );

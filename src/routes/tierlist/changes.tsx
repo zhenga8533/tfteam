@@ -320,13 +320,14 @@ function CompChanges({
         name: comp.name,
         units: comp.units.map((unit) => unit.apiName),
         traits: comp.traits.map((entry) => entry.trait),
+        items: comp.units.flatMap((unit) => unit.items),
       },
       filters,
       championName,
     ),
   );
   const dropped = (file.dropped ?? []).filter((comp) =>
-    passesCompFilters({ name: comp.name, units: comp.carries, traits: [] }, filters, championName),
+    passesCompFilters({ name: comp.name, units: comp.carries, traits: [], items: [] }, filters, championName),
   );
   const link = (id: string, name: string, onPatch?: string) => (
     <Link to="/comps/auto/$id" params={{ id }} search={{ rank, patch: onPatch }} className="hover:underline">

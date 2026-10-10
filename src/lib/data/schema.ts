@@ -214,6 +214,8 @@ export const setStatsSchema = z.object({
   notes: z.string().optional(),
   /** Final stats of a finished set, published from its archive rather than rebuilt. */
   frozen: z.boolean().optional(),
+  /** The Explorer has files of boards by item (see `BOARD_ITEM_KINDS`); absent on sets frozen before it did. */
+  explorerItems: z.boolean().optional(),
 });
 export type SetStats = z.infer<typeof setStatsSchema>;
 export type RankFloor = SetStats["rankFloor"];

@@ -18,7 +18,7 @@ import {
   setStatsSchema,
   traitStatsSchema,
 } from "../src/lib/data/schema.ts";
-import { EXPLORER_FILES } from "../src/lib/explorer/files.ts";
+import { BOARD_ITEM_KINDS, EXPLORER_FILES } from "../src/lib/explorer/files.ts";
 import { encodeExplorer } from "../src/lib/explorer/format.ts";
 import { BoardResolver, type ResolvedBoard } from "./stats/boards.ts";
 import { ExplorerCollector } from "./stats/explorer.ts";
@@ -177,13 +177,15 @@ async function writeLittleLegends(dir: string, legends: LittleLegendAccumulator)
 
 /**
  * The Explorer's files (see `EXPLORER_FILES`): every board behind `stats` and the other offered rank floors, in one
- * file per champion or trait and rank, so a floor downloads only the ranks it covers.
+ * file per champion, trait or item and rank, so a floor downloads only the ranks it covers.
  */
 async function writeExplorer(dir: string, read: ReadBoards, data: SetData, stats: SetStats, chunks: BoardChunk[]) {
   const offered = [stats.rankFloor, ...(stats.ranks ?? [])];
   const lowest = RANK_OPTIONS.findLast((floor) => offered.includes(floor)) ?? stats.rankFloor;
   const buckets = new Set(FLOOR_BUCKETS[lowest]);
-  const collector = new ExplorerCollector();
+  const collector = new ExplorerCollector(
+    new Set(data.items.filter((item) => BOARD_ITEM_KINDS.includes(item.kind)).map((item) => item.apiName)),
+  );
   const resolver = new BoardResolver(data);
   for (const chunk of chunks) {
     for (const row of await read(chunk)) if (buckets.has(row[2])) collector.add(row[2], resolver.board(row));
@@ -195,7 +197,7 @@ async function writeExplorer(dir: string, read: ReadBoards, data: SetData, stats
     await writeFile(join(dir, path), contents);
     return typeof contents === "string" ? Buffer.byteLength(contents) : contents.byteLength;
   };
-  const written = { champion: { files: 0, bytes: 0 }, trait: { files: 0, bytes: 0 } };
+  const written = { champion: { files: 0, bytes: 0 }, trait: { files: 0, bytes: 0 }, item: { files: 0, bytes: 0 } };
   for (const { kind, apiName, rank, boards } of collector.parts(RANK_OPTIONS.indexOf(lowest) + 1)) {
     // gzip's default level: level 9 takes about eight times as long for files only 1.5% smaller.
     const contents = gzipSync(encodeExplorer(boards, defaultRank, collector.population));
@@ -204,7 +206,7 @@ async function writeExplorer(dir: string, read: ReadBoards, data: SetData, stats
   }
   const totals = await write(EXPLORER_FILES.totals, JSON.stringify(collector.totals.results(defaultRank)));
   const summary = (kind: keyof typeof written) => `${written[kind].files} ${kind} files (${mb(written[kind].bytes)})`;
-  console.log(`  explorer: ${summary("champion")}, ${summary("trait")}, totals (${mb(totals)})`);
+  console.log(`  explorer: ${summary("champion")}, ${summary("trait")}, ${summary("item")}, totals (${mb(totals)})`);
 }
 
 const mb = (bytes: number) => `${(bytes / 1e6).toFixed(1)} MB`;
@@ -428,6 +430,7 @@ async function buildSet(
     entry.notes = timeline.find((patch) => patch.label === entry.patch)?.notes;
   if (patchStats.length) stats.patches = patchStats.map((entry) => entry.patch);
 
+  if (ready) stats.explorerItems = true;
   const json = JSON.stringify(setStatsSchema.parse(stats));
   await writeFile(join(OUT_DIR, `set${set}.json`), json);
   if (ready) await store.putSummary(set, stats.patch, json);

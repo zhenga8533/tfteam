@@ -67,6 +67,7 @@ const GuideRows = memo(function GuideRows({
         {
           name: comp.name,
           units: comp.board.map((unit) => unit.apiName),
+          items: comp.board.flatMap((unit) => unit.items ?? []),
           traits: computeTraits(
             comp.board.map((unit) => ({ apiName: unit.apiName, items: unit.items ?? [] })),
             championsByApi,
@@ -117,6 +118,7 @@ const StatRows = memo(function StatRows({
         name: comp.name,
         units: comp.units.map((unit) => unit.apiName),
         traits: comp.traits.map((entry) => entry.trait),
+        items: comp.units.flatMap((unit) => unit.items),
       },
       filters,
       championName,

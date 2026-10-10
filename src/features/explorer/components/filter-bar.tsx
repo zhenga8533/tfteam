@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useGameData } from "@/lib/data/hooks";
 import type { ExplorerFilter } from "@/lib/explorer/engine";
+import { BOARD_ITEM_KINDS } from "@/lib/explorer/files";
 import { breakpointOf, traitStyle } from "@/lib/game/traits";
 import { PickerDialog } from "@/components/game/picker-dialog";
 
-type Picker = { kind: "champion" } | { kind: "trait" } | { kind: "item"; index: number } | null;
+type Picker = { kind: "champion" } | { kind: "trait" } | { kind: "item"; index: number } | { kind: "boardItem" } | null;
 
 const ANY = "any";
 const LEVELS = [7, 8, 9, 10];
@@ -17,10 +18,15 @@ const MAX_ITEMS = 3;
 interface FilterBarProps {
   filters: ExplorerFilter[];
   onChange: (filters: ExplorerFilter[]) => void;
+  /** Whether the set's files can answer an item on any champion (see `SetStats.explorerItems`). */
+  boardItems: boolean;
 }
 
-/** Filter chips for units (star level, items), traits (breakpoint) and level, plus pickers to add more. */
-export function FilterBar({ filters, onChange }: FilterBarProps) {
+/**
+ * Filter chips for units (star level, items), traits (breakpoint), items on any unit and level, plus pickers to add
+ * more.
+ */
+export function FilterBar({ filters, onChange, boardItems }: FilterBarProps) {
   const { champions, items, traits, championsByApi, itemsByApi, traitsByApi } = useGameData();
   const [picker, setPicker] = useState<Picker>(null);
 
@@ -45,6 +51,11 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
         <Button variant="outline" size="sm" onClick={() => setPicker({ kind: "trait" })}>
           <Plus /> Trait
         </Button>
+        {boardItems && (
+          <Button variant="outline" size="sm" onClick={() => setPicker({ kind: "boardItem" })}>
+            <Plus /> Item
+          </Button>
+        )}
         <Select value={level ? String(level.min) : ANY} onValueChange={setLevel}>
           <SelectTrigger size="sm" className="w-auto" aria-label="Minimum level">
             <SelectValue />
@@ -71,7 +82,7 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
       >
         {chips.length === 0 && (
           <p className="px-1.5 text-sm text-muted-foreground">
-            No champion or trait filters: showing every board in the sample.
+            No champion, trait or item filters: showing every board in the sample.
           </p>
         )}
         {filters.map((filter, index) => {
@@ -176,6 +187,26 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
               </div>
             );
           }
+          if (filter.type === "item") {
+            const item = itemsByApi.get(filter.item);
+            if (!item) return null;
+            return (
+              <div key={index} className="flex items-center gap-1.5 rounded-lg border bg-card py-1 pr-1 pl-1.5">
+                <ItemIcon item={item} className="size-7" decorative />
+                <span className="text-sm font-medium">{item.name}</span>
+                <span className="text-xs text-muted-foreground">on any champion</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-7"
+                  onClick={() => remove(index)}
+                  aria-label="Remove"
+                >
+                  <X />
+                </Button>
+              </div>
+            );
+          }
           return null;
         })}
       </div>
@@ -219,6 +250,16 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
           const filter = filters[picker.index];
           if (filter?.type === "unit") replace(picker.index, { ...filter, items: [...(filter.items ?? []), item] });
         }}
+      />
+      <PickerDialog
+        open={picker?.kind === "boardItem"}
+        onOpenChange={(open) => !open && setPicker(null)}
+        title="Add an item on any champion"
+        description="Emblems, artifacts and radiants. For a completed item, add the champion holding it and pick the item there."
+        options={items
+          .filter((item) => BOARD_ITEM_KINDS.includes(item.kind))
+          .map((item) => ({ key: item.apiName, label: item.name, icon: <ItemIcon item={item} className="size-10" /> }))}
+        onPick={(item) => onChange([...filters, { type: "item", item }])}
       />
     </div>
   );

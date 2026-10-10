@@ -80,10 +80,13 @@ place. Match data has no positions, so comp boards are laid out by attack range.
 
 ## Explorer
 
-Every board of the shown patch, queried in the browser in a Web Worker. Boards are packed into one file per champion
-or trait (split by rank, so a rank floor downloads only what it covers) plus totals. A query loads its first
-champion's file, else its first trait's, else the totals, and filters by champions (star level, items), traits and
-level. The Team Builder compares its board with every board that has its main carry.
+Every board of the shown patch, queried in the browser in a Web Worker. Boards are packed into one file per champion,
+trait, or emblem, artifact, radiant or set item (split by rank, so a rank floor downloads only what it covers) plus
+totals. A query loads its first champion's file, else its first item's, else its first trait's, else the totals, and
+filters by champions (star level, items), traits, items on any champion and level. Completed items have no files of
+their own (a board holds about nine, which would double the Explorer's size), so they're filtered on a champion. Sets
+frozen before item files existed don't offer the item filter (`explorerItems` in their stats). The Team Builder
+compares its board with every board that has its main carry.
 
 ## Finished sets
 

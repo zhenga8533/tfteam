@@ -1,6 +1,6 @@
 import { type ReactNode, useState } from "react";
 import { SearchInput } from "@/components/layout/search-input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { matches } from "@/lib/search";
 
 export interface PickerOption {
@@ -13,12 +13,14 @@ interface PickerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
+  /** What the choices are, under the title. */
+  description?: string;
   options: PickerOption[];
   onPick: (key: string) => void;
 }
 
 /** A searchable grid of icons for choosing a champion, item or trait. */
-export function PickerDialog({ open, onOpenChange, title, options, onPick }: PickerDialogProps) {
+export function PickerDialog({ open, onOpenChange, title, description, options, onPick }: PickerDialogProps) {
   const [query, setQuery] = useState("");
   const visible = options.filter((option) => matches(option.label, query));
 
@@ -27,6 +29,7 @@ export function PickerDialog({ open, onOpenChange, title, options, onPick }: Pic
       <DialogContent className="max-h-[85dvh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
+          {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
         <SearchInput value={query} onChange={setQuery} placeholder="Search" />
         <ul className="grid grid-cols-[repeat(auto-fill,minmax(4.5rem,1fr))] gap-2">
