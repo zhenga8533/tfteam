@@ -89,7 +89,7 @@ test("the team builder saves the board as an image", async ({ page }, testInfo) 
 
 test("a comp guide copies a team code for the in-game planner", async ({ page }) => {
   await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("comps/set18-blossom-spellweaver");
+  await page.goto("comps/set18-blossom-ahri");
   await page.getByRole("button", { name: "Copy team code" }).click();
   await expect(page.getByText(/^Team code copied/)).toBeVisible();
   expect(await page.evaluate("navigator.clipboard.readText()")).toMatch(/TFTSet\d+$/);
