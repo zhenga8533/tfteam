@@ -7,7 +7,7 @@ import { ITEM_KIND_LABELS } from "@/components/game/styles";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { compsForSet } from "@/content";
+import { compGuidesQuery } from "@/content/hooks";
 import { useActiveSet, useGameData } from "@/lib/data/hooks";
 import { autoCompsQuery } from "@/lib/data/queries";
 import { traitStyle } from "@/lib/game/traits";
@@ -49,8 +49,9 @@ const PAGES: Entry[] = NAV.flatMap((entry) =>
 function useEntries(): Entry[] {
   const { patch, set } = useActiveSet();
   const { champions, items, traits } = useGameData();
-  // Not suspending: the palette works before (or without) detected comps.
+  // Not suspending: the palette works before (or without) detected comps and guides.
   const autoComps = useQuery(autoCompsQuery(patch, set)).data?.comps;
+  const guides = useQuery(compGuidesQuery(set)).data;
   return useMemo(
     () => [
       ...champions.map((champion) => ({
@@ -77,7 +78,7 @@ function useEntries(): Entry[] {
         icon: <TraitIcon trait={trait} style={traitStyle(trait.breakpoints[0]?.style ?? 1)} className="size-7" />,
         link: { to: "/traits/$apiName" as const, params: { apiName: trait.apiName } },
       })),
-      ...compsForSet(set).map((comp) => ({
+      ...(guides ?? []).map((comp) => ({
         key: `guide:${comp.slug}`,
         label: comp.name,
         group: "Comps",
@@ -95,7 +96,7 @@ function useEntries(): Entry[] {
       })),
       ...PAGES,
     ],
-    [champions, items, traits, set, autoComps],
+    [champions, items, traits, guides, autoComps],
   );
 }
 

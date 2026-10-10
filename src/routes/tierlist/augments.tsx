@@ -5,7 +5,8 @@ import { type AugmentFilters, matchesAugmentFilters, parseAugmentFilters } from 
 import { AugmentIcon } from "@/components/game/icons";
 import { EmptyState } from "@/components/layout/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
-import { tierListForSet } from "@/content";
+import { SourceCredit } from "@/components/layout/source-credit";
+import { tierListForSet } from "@/content/tierlists";
 import type { TierRows as TierRowsData } from "@/content/types";
 import { TierRows } from "@/features/comps/components/tier-rows";
 import { TierEntry } from "@/features/stats/components/tier-entry";
@@ -40,9 +41,16 @@ function AugmentTierListPage() {
       <PageHeader
         title="Augment Tier List"
         description={
-          tierList
-            ? `Set ${set} augments ranked by hand; Riot's match data doesn't include augments. Updated ${tierList.updatedAt}.`
-            : `Set ${set} augments.`
+          !tierList ? (
+            `Set ${set} augments.`
+          ) : tierList.augmentsSource ? (
+            <>
+              Set {set} augment tiers, updated {tierList.updatedAt}; Riot's match data doesn't include augments.{" "}
+              <SourceCredit source={tierList.augmentsSource} label="From" />
+            </>
+          ) : (
+            `Set ${set} augments ranked by hand; Riot's match data doesn't include augments. Updated ${tierList.updatedAt}.`
+          )
         }
       />
       {!tierList ? (

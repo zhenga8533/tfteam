@@ -148,6 +148,7 @@ export function tierListSource(list: TierList): string {
     traits: tierRows(list.traits),
     fallback: Object.values(fallback).some(Boolean) ? fallback : undefined,
     augments: tierRows(list.augments) ?? {},
+    augmentsSource: list.augmentsSource,
     updatedAt: list.updatedAt,
   };
   return `import type { TierList } from "../types";\n\nexport default ${literal(ordered)} satisfies TierList;\n`;

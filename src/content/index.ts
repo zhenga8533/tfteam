@@ -1,22 +1,24 @@
 import { type Board, createBoard } from "@/lib/game/board";
-import { type Comp, type CompUnit, type Tier, TIERS, type TierList } from "./types";
+import { type Comp, type CompUnit, type Tier, TIERS } from "./types";
 
-const compModules = import.meta.glob<Comp>("./comps/**/*.ts", { eager: true, import: "default" });
-const tierListModules = import.meta.glob<TierList>("./tierlists/*.ts", { eager: true, import: "default" });
+// Guides load one set at a time: each set's modules form one chunk (see vite.config.ts), fetched when a page needs it.
+const compModules = import.meta.glob<Comp>("./comps/**/*.ts", { import: "default" });
 
-export const ALL_COMPS: Comp[] = Object.values(compModules);
-export const ALL_TIER_LISTS: TierList[] = Object.values(tierListModules);
+const setFolder = (path: string) => Number(/\/comps\/set(\d+)\//.exec(path)?.[1]);
+
+/** The sets with guides. */
+export const GUIDE_SETS = [...new Set(Object.keys(compModules).map(setFolder))];
 
 const tierRank = (tier: Tier) => TIERS.indexOf(tier);
 
-export const compsForSet = (set: number) =>
-  ALL_COMPS.filter((comp) => comp.set === set).sort(
-    (a, b) => tierRank(a.tier) - tierRank(b.tier) || a.name.localeCompare(b.name),
-  );
+/** A set's guides, best tier first. */
+export async function loadComps(set: number): Promise<Comp[]> {
+  const loads = Object.entries(compModules).flatMap(([path, load]) => (setFolder(path) === set ? [load()] : []));
+  return (await Promise.all(loads)).sort((a, b) => tierRank(a.tier) - tierRank(b.tier) || a.name.localeCompare(b.name));
+}
 
-export const findComp = (slug: string) => ALL_COMPS.find((comp) => comp.slug === slug);
-
-export const tierListForSet = (set: number) => ALL_TIER_LISTS.find((list) => list.set === set);
+/** The set a guide's slug belongs to: slugs start with `set{N}-`. */
+export const setOfSlug = (slug: string) => Number(/^set(\d+)-/.exec(slug)?.[1]) || undefined;
 
 export function compBoard(units: CompUnit[]): Board {
   const board = createBoard();

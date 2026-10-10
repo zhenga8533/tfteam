@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { tierListForSet } from "@/content";
+import { tierListForSet } from "@/content/tierlists";
 import { tierListSource } from "@/content/serialize";
 import type { TierRows } from "@/content/types";
 import { copyText, downloadBlob } from "@/lib/share";

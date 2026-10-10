@@ -5,7 +5,7 @@ import { EmptyState } from "@/components/layout/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChoiceFilter } from "@/components/game/choice-filter";
-import { compsForSet } from "@/content";
+import { useCompGuides } from "@/content/hooks";
 import { type Comp, type Playstyle, PLAYSTYLES, type Tier } from "@/content/types";
 import { AutoCompCard, CompCard } from "@/features/comps/components/comp-card";
 import { CompFilterBar } from "@/features/comps/components/comp-filter-bar";
@@ -162,7 +162,7 @@ function CompTierListPage() {
   const filters = useDeferredValue(search);
   const stats = useTierStats(search.rank, undefined, search.patch);
   const detected = useAutoComps(search.rank, search.patch) ?? [];
-  const guides = compsForSet(set);
+  const guides = useCompGuides();
   const view: View = search.view ?? (detected.length > 0 ? "stats" : "guides");
 
   const update = useUpdateSearch<CompSearch>();

@@ -7,6 +7,8 @@ comps/set{N}/{slug}.ts   one comp per file (default export, `satisfies Comp`)
 tierlists/set{N}.ts      tier overrides and the augment tier list for a set (`satisfies TierList`)
 ```
 
+A set's guides load together, as one chunk, when a page needs them; a guide's slug must start with `set{N}-`.
+
 ## Tier lists
 
 Champion, item and trait tiers are generated from match stats (see the README's Match Stats section). The rows in

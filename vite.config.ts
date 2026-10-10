@@ -38,6 +38,23 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          // One chunk per set's comp guides (see `loadComps`), rather than one per guide or all sets in one.
+          groups: [
+            {
+              name: (id) => {
+                const set = /src[\\/]content[\\/]comps[\\/]set(\d+)[\\/]/.exec(id)?.[1];
+                return set ? `guides-set${set}` : null;
+              },
+            },
+          ],
+        },
+      },
+    },
+  },
   test: {
     include: ["src/**/*.test.ts", "scripts/**/*.test.ts"],
   },
