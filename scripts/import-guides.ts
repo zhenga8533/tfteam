@@ -10,8 +10,8 @@ import { existsSync } from "node:fs";
 import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { compSource, formatContentSource, tierListSource } from "../src/content/serialize.ts";
-import type { Comp, CompUnit, TierList } from "../src/content/types.ts";
+import { compFileName, compSource, formatContentSource, tierListSource } from "../src/content/serialize.ts";
+import { type Comp, type CompUnit, type TierList, TIERS } from "../src/content/types.ts";
 import { manifestSchema, type SetData } from "../src/lib/data/schema.ts";
 import { type Board, createBoard } from "../src/lib/game/board.ts";
 import {
@@ -35,12 +35,6 @@ async function fetchJson<T>(path: string): Promise<T> {
   return (await response.json()) as T;
 }
 
-const slugify = (text: string) =>
-  text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-
 const loadModule = async <T>(file: string) => ((await import(pathToFileURL(file).href)) as { default: T }).default;
 
 function toBoard(units: CompUnit[]): Board {
@@ -63,18 +57,18 @@ function nameGuides(guides: ImportedComp[], lookup: SetLookup, taken: Set<string
       `${guide.name} (${guide.playstyle})`,
       ...guide.otherTraits.map((trait) => `${guide.name} (${trait})`),
     ];
-    const name = candidates.find((candidate) => !taken.has(slugify(candidate)));
+    const name = candidates.find((candidate) => !taken.has(compFileName(candidate)));
     if (!name) {
       console.warn(`  skipped a second "${guide.name}" guide`);
       continue;
     }
-    taken.add(slugify(name));
+    taken.add(compFileName(name));
     named.push({ ...guide, name });
   }
   return named;
 }
 
-/** Removes the guides an earlier import wrote; returns the file names (without `.ts`) of the hand-written ones left. */
+/** Removes the guides an earlier import wrote; returns the file names of the hand-written ones left. */
 async function clearImported(dir: string): Promise<Set<string>> {
   const kept = new Set<string>();
   if (!existsSync(dir)) return kept;
@@ -82,7 +76,7 @@ async function clearImported(dir: string): Promise<Set<string>> {
     if (!file.endsWith(".ts")) continue;
     const comp = await loadModule<Comp>(join(dir, file));
     if (comp.source?.name === SOURCE_NAME) await rm(join(dir, file));
-    else kept.add(file.slice(0, -3));
+    else kept.add(file);
   }
   return kept;
 }
@@ -98,8 +92,7 @@ async function importComps(set: number, lookup: SetLookup): Promise<number> {
   await mkdir(dir, { recursive: true });
 
   // Best tiers first, so they keep the plain names.
-  const order = ["S", "A", "B", "C", "X"];
-  converted.sort((a, b) => order.indexOf(a.tier) - order.indexOf(b.tier));
+  converted.sort((a, b) => TIERS.indexOf(a.tier) - TIERS.indexOf(b.tier));
   const named = nameGuides(converted, lookup, taken);
   for (const guide of named) {
     const source = compSource({
@@ -110,7 +103,7 @@ async function importComps(set: number, lookup: SetLookup): Promise<number> {
       today: guide.updatedAt,
       source: guide.source,
     });
-    await writeFile(join(dir, `${slugify(guide.name)}.ts`), await formatContentSource(source));
+    await writeFile(join(dir, compFileName(guide.name)), await formatContentSource(source));
   }
   return named.length;
 }
