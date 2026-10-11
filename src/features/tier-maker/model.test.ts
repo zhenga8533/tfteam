@@ -77,6 +77,17 @@ describe("exportTierList", () => {
     expect(list).toEqual({ ...existing, augments: { A: ["aug"] }, updatedAt: "2026-10-03" });
   });
 
+  it("drops the augment list's credit once it's rearranged, and keeps it otherwise", () => {
+    const source = { name: "Site", url: "https://example.com" };
+    const credited = { ...base, existing: { ...existing, augmentsSource: source }, kind: "augments" as const };
+    expect(
+      exportTierList({ ...credited, rows: { A: ["aug"] }, mode: "overrides" }).list.augmentsSource,
+    ).toBeUndefined();
+    expect(exportTierList({ ...credited, rows: { S: ["aug"] }, mode: "overrides" }).list.augmentsSource).toEqual(
+      source,
+    );
+  });
+
   it("writes the minimal overrides for a stats-based list", () => {
     const { list, unranked } = exportTierList({
       ...base,

@@ -11,6 +11,8 @@ export type Slot = Tier | null;
 
 export const tierOf = (rows: TierRows, key: string): Slot => TIERS.find((tier) => rows[tier]?.includes(key)) ?? null;
 
+const sameRows = (a: TierRows, b: TierRows) => TIERS.every((tier) => (a[tier] ?? []).join() === (b[tier] ?? []).join());
+
 /** Moves `key` into `tier` (null: back to the pool), before `before` when it's in that tier, else at the end. */
 export function moveEntry(rows: TierRows, key: string, tier: Slot, before?: string): TierRows {
   const next: TierRows = {};
@@ -61,7 +63,11 @@ interface ExportOptions {
  */
 export function exportTierList({ existing, set, kind, rows, mode, statTiers, today }: ExportOptions) {
   const list: TierList = { ...(existing ?? { set, augments: {} }), updatedAt: today };
-  if (kind === "augments") return { list: { ...list, augments: rows }, unranked: [] };
+  if (kind === "augments") {
+    // A rearranged augment list is no longer the credited source's.
+    const augmentsSource = sameRows(rows, list.augments) ? list.augmentsSource : undefined;
+    return { list: { ...list, augments: rows, augmentsSource }, unranked: [] };
+  }
   if (mode === "fallback" || !statTiers) {
     return { list: { ...list, fallback: { ...list.fallback, [kind]: rows } }, unranked: [] };
   }

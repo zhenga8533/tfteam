@@ -26,7 +26,7 @@ export interface CompUnit {
   alternatives?: string[];
 }
 
-/** Where a guide or tier list is based on, credited with a link on its page. */
+/** The site a guide or tier list is based on, credited with a link on its page. */
 export interface ContentSource {
   name: string;
   url: string;
