@@ -1,6 +1,7 @@
 import type { Board } from "@/lib/game/board";
 import {
   type CompUnit,
+  type ContentSource,
   type Difficulty,
   type Playstyle,
   type Tier,
@@ -76,6 +77,8 @@ interface CompSourceOptions {
   board: Board;
   early?: Board;
   today?: string;
+  /** The guide this one is based on (see `Comp.source`). */
+  source?: ContentSource;
 }
 
 /**
@@ -88,10 +91,12 @@ export function compSource({
   board,
   early,
   today = new Date().toISOString().slice(0, 10),
+  source,
 }: CompSourceOptions) {
   const slug = `set${set}-${slugify(guide.name) || "new-comp"}`;
   const earlyField = early ? `\n  early: [\n${formatUnits(early, guide.carries)}\n  ],` : "";
   const tips = guide.tips.map((tip) => tip.trim()).filter(Boolean);
+  const sourceField = source ? `\n  source: ${literal(source, "  ")},` : "";
 
   return `import type { Comp } from "../../types";
 
@@ -108,7 +113,7 @@ ${formatUnits(board, guide.carries)}
   ],${earlyField}
   augments: ${stringList(guide.augments)},
   tips: ${stringList(tips)},
-  updatedAt: ${JSON.stringify(today)},
+  updatedAt: ${JSON.stringify(today)},${sourceField}
 } satisfies Comp;
 `;
 }
