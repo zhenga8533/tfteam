@@ -62,7 +62,7 @@ export default {
       "DA_FrontlineFoundation",
       "DA_LegionOfThrees",
       "DA_PatientStudy",
-      "DA_PandorasItemsII",
+      "DA_PandorasItemsIIMinus",
       "DA_18_FOURcing",
       "DA_PromisedProtection",
       "DA_SlamminPlus",
